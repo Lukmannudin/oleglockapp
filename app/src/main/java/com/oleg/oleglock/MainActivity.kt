@@ -3,7 +3,6 @@ package com.oleg.oleglock
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
@@ -21,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import com.oleg.oleglock.Util.toAppLocks
+import com.oleg.oleglock.ui.LockAppList
 import com.oleg.oleglock.ui.theme.OleglockTheme
 
 
@@ -31,6 +32,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val apps = Util.getAllApps(this).toAppLocks(this)
+
         setContent {
             OleglockTheme {
                 // A surface container using the 'background' color from the theme
@@ -38,7 +41,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    LockAppList(list = apps)
                 }
             }
         }

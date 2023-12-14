@@ -38,7 +38,6 @@ class LockWorker(appContext: Context, workerParams: WorkerParameters) :
             usageEvents.getNextEvent(event)
             if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED && !event.packageName.contains("launcher")) {
                 result = event.packageName
-                println("cek $result")
             }
         }
     }
