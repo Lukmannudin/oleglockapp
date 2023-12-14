@@ -1,8 +1,10 @@
 package com.oleg.oleglock
 
 import android.app.AppOpsManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
@@ -17,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
@@ -26,6 +29,7 @@ import com.oleg.oleglock.ui.theme.OleglockTheme
 
 
 class MainActivity : ComponentActivity() {
+
 
     private val lockWorkRequest: WorkRequest = OneTimeWorkRequestBuilder<LockWorker>().build()
 
@@ -56,25 +60,25 @@ class MainActivity : ComponentActivity() {
                 .enqueue(lockWorkRequest)
         }
     }
-}
 
-fun checkUsageStatsPermission(context: Context): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOps.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            Process.myUid(),
-            context.packageName
-        )
+    fun checkUsageStatsPermission(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+            val mode = appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                context.packageName
+            )
 
-        return mode == AppOpsManager.MODE_ALLOWED
+            return mode == AppOpsManager.MODE_ALLOWED
+        }
+        return true
     }
-    return true
-}
 
-fun requestUsageStatsPermission(context: Context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
-        context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+    fun requestUsageStatsPermission(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
     }
 }
 
