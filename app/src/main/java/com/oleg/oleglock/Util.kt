@@ -28,10 +28,21 @@ object Util {
             }
             .map {
                 val icon = context.packageManager.getApplicationIcon(it)
-                AppLock(packageName = it.packageName, icon = icon)
+                AppLock(packageName = it.packageName).apply {
+                    this.icon = icon
+                }
             }
             .sortedBy {
                 it.packageName.substringAfterLast(".")
             }
+    }
+
+    fun Collection<AppLock>.findIndexLockApp(appLock: AppLock) : Int {
+        this.forEachIndexed { index, app ->
+            if (app.packageName == appLock.packageName) {
+                return index
+            }
+        }
+        return -1
     }
 }

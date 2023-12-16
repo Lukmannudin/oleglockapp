@@ -1,6 +1,8 @@
 package com.oleg.oleglock.data
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 
@@ -8,8 +10,11 @@ import androidx.room.Update
 interface AppLockDao {
 
     @Query("SELECT * FROM applock")
-    fun getAll(): List<AppLock>
+    suspend fun getAll(): List<AppLock>
 
     @Update
-    fun update(lock: AppLock)
+    suspend fun update(lock: AppLock)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(appLock: AppLock)
 }

@@ -3,6 +3,7 @@ package com.oleg.oleglock.data
 import android.graphics.drawable.Drawable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 
 @Entity
@@ -13,6 +14,7 @@ data class AppLock(
 
     @ColumnInfo(name = "is_lock")
     var isLock: Boolean = false,
-
-    val icon: Drawable? = null
-)
+) {
+    @Ignore
+    var icon: Drawable? = null
+}

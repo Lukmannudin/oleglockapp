@@ -5,5 +5,5 @@ import androidx.room.RoomDatabase
 
 @Database(entities = [AppLock::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): AppLockDao
+    abstract fun appLock(): AppLockDao
 }
