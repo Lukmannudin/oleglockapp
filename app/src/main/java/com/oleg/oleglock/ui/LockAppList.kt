@@ -35,8 +35,11 @@ fun LockAppList(
     // TODO: use database
     val mutableList = list.toTypedArray()
 
+
     LazyColumn {
         itemsIndexed(mutableList) { index, item ->
+
+            println("cekcek $item")
             LockCheckbox(
                 item.packageName, item.isLock, item.icon
             ) { isChecked ->

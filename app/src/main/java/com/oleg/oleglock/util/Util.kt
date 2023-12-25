@@ -1,8 +1,12 @@
-package com.oleg.oleglock
+package com.oleg.oleglock.util
 
+import android.app.AppOpsManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.os.Process
+import android.provider.Settings
 import com.oleg.oleglock.data.AppLock
 
 object Util {

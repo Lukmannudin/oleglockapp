@@ -7,40 +7,66 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
-import androidx.core.content.ContextCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.oleg.oleglock.data.AppLock
+import com.oleg.oleglock.data.AppLockDao
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Timer
 import java.util.TimerTask
 
 
-class LockWorker(appContext: Context, workerParams: WorkerParameters) :
-    Worker(appContext, workerParams) {
+@HiltWorker
+class LockWorker @AssistedInject constructor(
+    @Assisted private val appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val dao: AppLockDao
+) : Worker(appContext, workerParams) {
+
+    private val cache = mutableListOf<AppLock>()
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == ACTION_START_ACTIVITY) {
-                // Start your activity here
                 val startActivityIntent = Intent(applicationContext, MainActivity::class.java)
                 startActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 applicationContext.startActivity(startActivityIntent)
             }
         }
     }
+
     override fun doWork(): Result {
-        applicationContext.registerReceiver(broadcastReceiver,
-            IntentFilter(ACTION_START_ACTIVITY))
+        CoroutineScope(Dispatchers.IO).launch {
+            cache.addAll(dao.getAll())
+        }
+
+        applicationContext.registerReceiver(
+            broadcastReceiver,
+            IntentFilter(ACTION_START_ACTIVITY)
+        )
 
         checkAllApps()
 
         val timer = Timer()
-        timer.scheduleAtFixedRate(object : TimerTask() {
+
+        val task = object : TimerTask() {
             override fun run() {
-                getCurrentAppLaunch(applicationContext)
+                if (isCurrentAppLock(appContext)) {
+                    cancel()
+                    timer.cancel()
+                    val intent = Intent(ACTION_START_ACTIVITY)
+                    appContext.sendBroadcast(intent)
+                }
             }
-        }, 0, 5000) //
+        }
+
+        timer.scheduleAtFixedRate(task, 0, 5000)
         return Result.success()
     }
 
@@ -49,30 +75,33 @@ class LockWorker(appContext: Context, workerParams: WorkerParameters) :
         applicationContext.unregisterReceiver(broadcastReceiver)
     }
 
-    fun getCurrentAppLaunch(context: Context) {
+    fun isCurrentAppLock(context: Context): Boolean {
         val statsManager =
             context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
         val beginTime = endTime - 10000
-        var result = ""
         val event = UsageEvents.Event()
         val usageEvents: UsageEvents = statsManager.queryEvents(beginTime, endTime)
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event)
-            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED && event.packageName.equals("com.google.android.apps.maps")) {
-                println("cekcek HORAY")
-                val intent = Intent(ACTION_START_ACTIVITY)
-                context.sendBroadcast(intent)
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED && cache.contains(
+                    AppLock(
+                        event.packageName,
+                        true
+                    )
+                )
+            ) {
+                return true
+
             }
         }
+
+        return false
     }
 
     private fun checkAllApps() {
         val pm = applicationContext.packageManager
-        //get a list of installed apps.
-        //get a list of installed apps.
         val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-//        com.google.android.apps.photos
         for (packageInfo in packages) {
             Log.d(TAG, "Installed package :" + packageInfo.packageName)
             Log.d(TAG, "Source dir : " + packageInfo.sourceDir)

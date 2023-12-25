@@ -1,14 +1,19 @@
 package com.oleg.oleglock
 
 import android.app.Application
-import androidx.room.Room
-import com.oleg.oleglock.data.AppDatabase
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
+
 
 @HiltAndroidApp
-class OlegApp : Application() {
-//    val db = Room.databaseBuilder(
-//        this,
-//        AppDatabase::class.java, "applock.db"
-//    ).build()
+class OlegApp : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 }

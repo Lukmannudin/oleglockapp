@@ -1,17 +1,14 @@
 package com.oleg.oleglock
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.oleg.oleglock.Util.findIndexLockApp
 import com.oleg.oleglock.data.AppLock
 import com.oleg.oleglock.data.AppLockDao
+import com.oleg.oleglock.util.Util.findIndexLockApp
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,12 +38,16 @@ class MainActivityViewModel @Inject constructor(
 
     fun mergeAppLocks(deviceApps: List<AppLock>): List<AppLock> {
         val apps = deviceApps.toMutableList()
-        viewModelState.value = HomeViewModelState(isLoading = false, deviceApps)
-//        val appLockCaches = dao.getAll()
-//        appLockCaches.forEach { appLock ->
-//            val index = apps.findIndexLockApp(appLock)
-//            if (index >= 0) apps[index].isLock = appLock.isLock
-//        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            viewModelState.value = HomeViewModelState(isLoading = false, deviceApps)
+            val appLockCaches = dao.getAll()
+            appLockCaches.forEach { appLock ->
+                val index = apps.findIndexLockApp(appLock)
+                if (index >= 0) apps[index].isLock = appLock.isLock
+            }
+        }
+
         return apps
     }
 
