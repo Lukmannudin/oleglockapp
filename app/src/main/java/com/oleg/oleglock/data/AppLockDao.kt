@@ -17,4 +17,7 @@ interface AppLockDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(appLock: AppLock)
+
+    @Query("SELECT * FROM applock WHERE package_name = :packageName")
+    suspend fun get(packageName: String): AppLock
 }

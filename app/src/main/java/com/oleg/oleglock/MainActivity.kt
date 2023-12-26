@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
     }
 
     override fun onPause() {

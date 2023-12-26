@@ -14,6 +14,9 @@ data class AppLock(
 
     @ColumnInfo(name = "is_lock")
     var isLock: Boolean = false,
+
+    @ColumnInfo(name = "pattern")
+    var pattern: ArrayList<Int>? = null
 ) {
     @Ignore
     var icon: Drawable? = null

@@ -56,6 +56,8 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.activity:activity-compose:1.7.0")
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.compose.ui:ui")
@@ -97,5 +99,15 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
+    // pattern lock
+    implementation("io.github.itsxtt:pattern-lock:0.2.0")
 
+    // gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // icons
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // jetpack compose
+    implementation("androidx.activity:activity-compose:1.8.2")
 }

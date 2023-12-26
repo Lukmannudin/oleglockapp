@@ -34,7 +34,7 @@ class LockWorker @AssistedInject constructor(
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == ACTION_START_ACTIVITY) {
-                val startActivityIntent = Intent(applicationContext, MainActivity::class.java)
+                val startActivityIntent = Intent(applicationContext, LockScreenActivity::class.java)
                 startActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 applicationContext.startActivity(startActivityIntent)
             }
@@ -57,10 +57,12 @@ class LockWorker @AssistedInject constructor(
 
         val task = object : TimerTask() {
             override fun run() {
-                if (isCurrentAppLock(appContext)) {
+                val packageName = getCurrentLockPackageName(appContext)
+                if (packageName.isNotEmpty()) {
                     cancel()
                     timer.cancel()
                     val intent = Intent(ACTION_START_ACTIVITY)
+                        .putExtra(LockScreenActivity.PACKAGE_NAME, packageName)
                     appContext.sendBroadcast(intent)
                 }
             }
@@ -75,13 +77,14 @@ class LockWorker @AssistedInject constructor(
         applicationContext.unregisterReceiver(broadcastReceiver)
     }
 
-    fun isCurrentAppLock(context: Context): Boolean {
+    fun getCurrentLockPackageName(context: Context): String {
         val statsManager =
             context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
         val beginTime = endTime - 10000
         val event = UsageEvents.Event()
         val usageEvents: UsageEvents = statsManager.queryEvents(beginTime, endTime)
+        var result = ""
         while (usageEvents.hasNextEvent()) {
             usageEvents.getNextEvent(event)
             if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED && cache.contains(
@@ -91,22 +94,23 @@ class LockWorker @AssistedInject constructor(
                     )
                 )
             ) {
-                return true
+                result = event.packageName
+                return result
 
             }
         }
 
-        return false
+        return result
     }
 
     private fun checkAllApps() {
         val pm = applicationContext.packageManager
         val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-        for (packageInfo in packages) {
-            Log.d(TAG, "Installed package :" + packageInfo.packageName)
-            Log.d(TAG, "Source dir : " + packageInfo.sourceDir)
-            Log.d(TAG, "Launch Activity :" + pm.getLaunchIntentForPackage(packageInfo.packageName))
-        }
+//        for (packageInfo in packages) {
+//            Log.d(TAG, "Installed package :" + packageInfo.packageName)
+//            Log.d(TAG, "Source dir : " + packageInfo.sourceDir)
+//            Log.d(TAG, "Launch Activity :" + pm.getLaunchIntentForPackage(packageInfo.packageName))
+//        }
     }
 
     companion object {

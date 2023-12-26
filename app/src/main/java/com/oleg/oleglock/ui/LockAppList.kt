@@ -1,6 +1,13 @@
 package com.oleg.oleglock.ui
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.oleg.oleglock.MainActivityViewModel
 import com.oleg.oleglock.data.AppLock
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.oleg.oleglock.LockScreenActivity
 
 
 @Composable
@@ -35,18 +44,47 @@ fun LockAppList(
     // TODO: use database
     val mutableList = list.toTypedArray()
 
-
+    val launcher = rememberLauncherForActivityResult(
+        contract = PickLockPattern(),
+        onResult = { uri ->
+            uri
+        }
+    )
     LazyColumn {
         itemsIndexed(mutableList) { index, item ->
-
-            println("cekcek $item")
+            val context = LocalContext.current
             LockCheckbox(
                 item.packageName, item.isLock, item.icon
             ) { isChecked ->
                 mutableList[index].isLock = isChecked
                 viewModel.setLocked(mutableList[index])
+                if (isChecked) {
+//                    val intent = Intent(context, LockScreenActivity::class.java).apply {
+//                        putExtra(LockScreenActivity.PACKAGE_NAME, item.packageName)
+//                        putExtra(LockScreenActivity.SHOULD_UPDATE_LOCK, true)
+//                    }
+//                    context.startActivity(intent)
+                    launcher.launch(item.packageName)
+                }
+
             }
         }
+    }
+}
+
+class PickLockPattern : ActivityResultContract<String, Uri?>() {
+    override fun createIntent(context: Context, input: String): Intent {
+        return Intent(context, LockScreenActivity::class.java).apply {
+            putExtra(LockScreenActivity.PACKAGE_NAME, input)
+            putExtra(LockScreenActivity.SHOULD_UPDATE_LOCK, true)
+        }
+    }
+
+    override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
+        if (resultCode != Activity.RESULT_OK) {
+            return null
+        }
+        return intent?.getParcelableExtra(LockScreenActivity.PATTERN_RESULT)
     }
 }
 
